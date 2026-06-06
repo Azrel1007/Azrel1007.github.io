@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💕 Anniversary kita!</title>
+<link href="https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink: #ff6b9d;
+    --peach: #ffb347;
+    --mint: #a8edea;
+    --lavender: #c9b1ff;
+    --yellow: #ffe066;
+    --white: #fff9f9;
+    --dark: #3d2c3e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--white); font-family: 'Nunito', sans-serif; color: var(--dark); overflow-x: hidden; min-height: 100vh; }
+
+  /* ===== LOCK SCREEN ===== */
+  #lockScreen {
+    position: fixed; inset: 0; z-index: 9999;
+    background: linear-gradient(135deg, #ffe0f0 0%, #f0e0ff 50%, #e0f0ff 100%);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+  }
+  #lockScreen .lock-blobs { position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+  #lockScreen .lock-blobs span {
+    position:absolute; border-radius:50%; filter:blur(50px); opacity:0.35;
+    animation: drift 10s ease-in-out infinite;
+  }
+  #lockScreen .lock-blobs span:nth-child(1){width:300px;height:300px;background:#ffb3d1;top:-60px;left:-60px;}
+  #lockScreen .lock-blobs span:nth-child(2){width:250px;height:250px;background:#c9b1ff;bottom:-40px;right:-40px;animation-delay:-5s;}
+  #lockScreen .lock-blobs span:nth-child(3){width:200px;height:200px;background:#a8edea;top:40%;left:60%;animation-delay:-3s;}
+
+  .lock-card {
+    position: relative; z-index: 1;
+    background: rgba(255,255,255,0.8);
+    backdrop-filter: blur(20px);
+    border: 2.5px solid rgba(255,107,157,0.25);
+    border-radius: 36px;
+    padding: 44px 36px 38px;
+    text-align: center;
+    box-shadow: 0 12px 50px rgba(255,107,157,0.18);
+    max-width: 340px; width: 90%;
+  }
+  .lock-heart {
+    font-size: 4rem;
+    display: block;
+    animation: heartbeat 1s ease-in-out infinite;
+    margin-bottom: 10px;
+  }
+  @keyframes heartbeat { 0%,100%{transform:scale(1);} 50%{transform:scale(1.2);} }
+
+  .lock-title {
+    font-family: 'Bubblegum Sans', cursive;
+    font-size: 1.8rem; color: var(--pink);
+    text-shadow: 2px 2px 0 rgba(255,107,157,0.15);
+    margin-bottom: 6px;
+  }
+  .lock-hint {
+    font-size: 0.82rem; font-weight: 700; color: #b07abc;
+    margin-bottom: 26px; line-height: 1.5;
+  }
+
+  /* PIN DOTS */
+  .pin-dots {
+    display: flex; justify-content: center; gap: 14px; margin-bottom: 22px;
+  }
+  .pin-dot {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: rgba(255,107,157,0.15);
+    border: 2.5px solid rgba(255,107,157,0.35);
+    transition: all 0.2s;
+  }
+  .pin-dot.filled {
+    background: var(--pink);
+    border-color: var(--pink);
+    box-shadow: 0 0 10px rgba(255,107,157,0.5);
+    transform: scale(1.15);
+  }
+  .pin-dot.error { background: #ff4a4a; border-color: #ff4a4a; }
+  .pin-dot.success { background: #4adc7a; border-color: #4adc7a; box-shadow: 0 0 10px rgba(74,220,122,0.5); }
+
+  /* NUMPAD */
+  .numpad {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  }
+  .key {
+    background: linear-gradient(135deg, #fff0f8, #f8f0ff);
+    border: 2px solid rgba(255,107,157,0.2);
+    border-radius: 18px;
+    padding: 16px 0;
+    font-family: 'Bubblegum Sans', cursive;
+    font-size: 1.6rem; color: var(--dark);
+    cursor: pointer;
+    transition: transform 0.1s, background 0.15s, box-shadow 0.15s;
+    box-shadow: 0 3px 10px rgba(255,107,157,0.08);
+    position: relative; overflow: hidden;
+  }
+  .key:active, .key.pressed {
+    transform: scale(0.92);
+    background: linear-gradient(135deg, #ffe0ef, #f0e0ff);
+    box-shadow: 0 1px 4px rgba(255,107,157,0.15);
+  }
+  .key.del-key { font-size: 1.3rem; }
+  .key.empty { background: transparent; border-color: transparent; box-shadow: none; cursor: default; }
+
+  /* SHAKE ANIMATION */
+  @keyframes shake {
+    0%,100%{transform:translateX(0);}
+    20%{transform:translateX(-8px);}
+    40%{transform:translateX(8px);}
+    60%{transform:translateX(-6px);}
+    80%{transform:translateX(6px);}
+  }
+  .shake { animation: shake 0.4s ease; }
+
+  /* WRONG MSG */
+  .wrong-msg {
+    font-size: 0.78rem; font-weight: 800; color: #ff4a4a;
+    margin-top: 14px; min-height: 18px; letter-spacing: 0.5px;
+    animation: fadeIn 0.2s ease;
+  }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(-4px);} to{opacity:1;transform:translateY(0);} }
+
+  /* ===== MAIN PAGE ===== */
+  #mainPage { display: none; }
+
+  .bg-blobs { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  .blob { position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.25; animation: drift 12s ease-in-out infinite; }
+  .blob:nth-child(1){width:400px;height:400px;background:var(--pink);top:-80px;left:-80px;}
+  .blob:nth-child(2){width:350px;height:350px;background:var(--lavender);top:40%;right:-100px;animation-delay:-4s;}
+  .blob:nth-child(3){width:300px;height:300px;background:var(--peach);bottom:-60px;left:30%;animation-delay:-8s;}
+  .blob:nth-child(4){width:250px;height:250px;background:var(--mint);top:20%;left:50%;animation-delay:-2s;}
+  @keyframes drift{0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(20px,-30px) scale(1.05);}66%{transform:translate(-15px,20px) scale(0.97);}}
+
+  .floaties { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
+  .floaty { position: absolute; font-size: 1.8rem; animation: floatUp linear infinite; opacity: 0; }
+  @keyframes floatUp{0%{opacity:0;transform:translateY(0) rotate(0deg);}10%{opacity:0.7;}90%{opacity:0.5;}100%{opacity:0;transform:translateY(-110vh) rotate(360deg);}}
+
+  .wrapper { position: relative; z-index: 2; max-width: 720px; margin: 0 auto; padding: 40px 20px 80px; }
+
+  .card {
+    background: rgba(255,255,255,0.75); backdrop-filter: blur(18px);
+    border: 2.5px solid rgba(255,107,157,0.2); border-radius: 32px;
+    padding: 44px 40px;
+    box-shadow: 0 8px 40px rgba(255,107,157,0.12), 0 2px 0 rgba(255,255,255,0.8) inset;
+    margin-bottom: 24px; position: relative; overflow: hidden;
+  }
+  .card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:5px;
+    background: linear-gradient(90deg, var(--pink), var(--peach), var(--yellow), var(--mint), var(--lavender));
+    border-radius: 32px 32px 0 0;
+  }
+
+  .header-emoji { text-align:center; font-size:3.5rem; animation: bounce 1.5s ease-in-out infinite; }
+  @keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
+
+  .title-wrap { text-align:center; margin:18px 0 10px; }
+  .main-title { font-family:'Bubblegum Sans',cursive; font-size:clamp(2rem,6vw,3.2rem); color:var(--pink); line-height:1.1; text-shadow:3px 3px 0 rgba(255,107,157,0.15); display:block; }
+  .subtitle { font-size:1rem; font-weight:700; color:#b07abc; margin-top:6px; display:block; }
+
+  .couple-row { display:flex; align-items:center; justify-content:center; gap:16px; margin:28px 0; flex-wrap:wrap; }
+  .name-box { background:linear-gradient(135deg,#ffe0ef,#ffdad4); border:2px solid rgba(255,107,157,0.25); border-radius:20px; padding:14px 28px; text-align:center; box-shadow:0 4px 14px rgba(255,107,157,0.1); transition:transform 0.2s; }
+  .name-box:hover { transform:scale(1.04) rotate(-1deg); }
+  .name-text { font-family:'Bubblegum Sans',cursive; font-size:1.6rem; color:var(--dark); display:block; text-align:center; }
+  .heart-sep { font-size:2.4rem; animation:heartbeat 1s ease-in-out infinite; }
+
+  .counter-card { background:linear-gradient(135deg,#fff0f5,#f5f0ff); border-radius:24px; padding:28px; text-align:center; margin:20px 0; border:2px dashed rgba(201,177,255,0.4); }
+  .counter-label { font-size:0.8rem; font-weight:800; color:#b07abc; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:12px; }
+  .counter-nums { display:flex; justify-content:center; gap:16px; flex-wrap:wrap; }
+  .num-box { background:#fff; border-radius:14px; padding:10px 18px; min-width:70px; box-shadow:0 3px 12px rgba(201,177,255,0.2); }
+  .num-val { font-family:'Bubblegum Sans',cursive; font-size:2.2rem; color:var(--pink); line-height:1; }
+  .num-unit { font-size:0.7rem; font-weight:800; color:#b07abc; text-transform:uppercase; }
+  .start-date-info { margin-top:14px; font-size:0.85rem; font-weight:700; color:#c3a3d4; }
+
+  .photo-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:16px 0; }
+  .photo-slot { aspect-ratio:1; border-radius:18px; overflow:hidden; position:relative; }
+  .photo-slot img { width:100%; height:100%; object-fit:cover; display:block; border-radius:18px; }
+
+  .message-box { background:linear-gradient(135deg,#fffbe6,#fff3f8); border-radius:20px; padding:22px 26px; margin:20px 0; border-left:5px solid var(--yellow); }
+  .message-text { font-size:1rem; line-height:1.75; color:var(--dark); font-weight:600; display:block; }
+
+  .memories-title { font-family:'Bubblegum Sans',cursive; font-size:1.4rem; color:var(--dark); margin-bottom:14px; }
+  @keyframes popIn{from{opacity:0;transform:scale(0.7) translateY(10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+
+  /* MEMORY GRID */
+  .memory-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin:16px 0; }
+  .memory-card {
+    border-radius:18px; overflow:hidden; position:relative;
+    cursor:default; animation:popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+    background:#fff;
+    box-shadow: 0 4px 16px rgba(255,107,157,0.1);
+    border: 2px solid rgba(255,107,157,0.15);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .memory-card:hover { transform: scale(1.03) rotate(-0.5deg); box-shadow: 0 8px 24px rgba(255,107,157,0.2); }
+
+  /* foto slot di dalam memory card */
+  .memory-photo-slot {
+    width:100%; aspect-ratio:1; overflow:hidden; position:relative;
+    background:linear-gradient(135deg,#ffe0ef,#e0f0ff);
+    display:flex; align-items:center; justify-content:center;
+    border-bottom: 2px dashed rgba(255,107,157,0.2);
+  }
+  .memory-photo-slot img { width:100%; height:100%; object-fit:cover; display:block; position:absolute; inset:0; }
+  .memory-photo-slot video { width:100%; height:100%; object-fit:cover; display:block; position:absolute; inset:0; border-radius:0; }
+  .memory-photo-slot .empty-slot {
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    font-size:0.65rem; font-weight:800; color:#d987b0; text-align:center;
+  }
+  .memory-photo-slot .empty-slot span { font-size:1.8rem; }
+  /* play overlay for video */
+  .video-play-btn {
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    background: rgba(0,0,0,0.18); cursor:pointer;
+    font-size:2rem;
+  }
+
+  .memory-card-text {
+    padding: 8px 10px;
+    font-size:0.72rem; font-weight:800; color:var(--dark);
+    line-height:1.4; word-break:break-word; text-align:center;
+    background:#fff;
+  }
+
+  .footer-msg { text-align:center; margin-top:32px; font-size:0.85rem; font-weight:700; color:#d987b0; }
+
+  .sticker { position:absolute; pointer-events:none; user-select:none; font-size:2rem; animation:wiggle 3s ease-in-out infinite; }
+  @keyframes wiggle{0%,100%{transform:rotate(-6deg);}50%{transform:rotate(8deg);}}
+
+  .confetti-piece { position:fixed; width:10px; height:10px; top:-20px; border-radius:2px; animation:confettiFall linear forwards; pointer-events:none; z-index:999; }
+  @keyframes confettiFall{0%{transform:translateY(0) rotate(0deg) translateX(0);opacity:1;}100%{transform:translateY(110vh) rotate(720deg) translateX(var(--drift));opacity:0;}}
+
+  /* UNLOCK ANIMATION */
+  @keyframes unlockPop {
+    0%{transform:scale(1);}
+    40%{transform:scale(1.08);}
+    70%{transform:scale(0.96);}
+    100%{transform:scale(1);}
+  }
+  .unlock-pop { animation: unlockPop 0.5s ease; }
+
+  @media(max-width:500px){
+    .card{padding:30px 20px;}
+    .couple-row{gap:10px;}
+    .name-box{padding:12px 18px;}
+    .photo-grid{grid-template-columns:repeat(2,1fr);}
+    .memory-grid{grid-template-columns:repeat(2,1fr);}
+    .lock-card{padding:36px 24px 30px;}
+  }
+</style>
+</style>
+</head>
+<body>
+
+<!-- ===== LOCK SCREEN ===== -->
+<div id="lockScreen">
+  <div class="lock-blobs">
+    <span></span><span></span><span></span>
+  </div>
+  <div class="lock-card" id="lockCard">
+    <span class="lock-heart">🔐</span>
+    <div class="lock-title">Psst, ini buat kamu!</div>
+    <div class="lock-hint">Hanya orang spesial yang tau kodenya 🤭<br>Masukkan kode cintamu ya sayang~</div>
+
+    <div class="pin-dots" id="pinDots">
+      <div class="pin-dot" id="d0"></div>
+      <div class="pin-dot" id="d1"></div>
+      <div class="pin-dot" id="d2"></div>
+      <div class="pin-dot" id="d3"></div>
+      <div class="pin-dot" id="d4"></div>
+      <div class="pin-dot" id="d5"></div>
+    </div>
+
+    <div class="numpad">
+      <button class="key" onclick="pressKey('1')">1</button>
+      <button class="key" onclick="pressKey('2')">2</button>
+      <button class="key" onclick="pressKey('3')">3</button>
+      <button class="key" onclick="pressKey('4')">4</button>
+      <button class="key" onclick="pressKey('5')">5</button>
+      <button class="key" onclick="pressKey('6')">6</button>
+      <button class="key" onclick="pressKey('7')">7</button>
+      <button class="key" onclick="pressKey('8')">8</button>
+      <button class="key" onclick="pressKey('9')">9</button>
+      <button class="key empty"></button>
+      <button class="key" onclick="pressKey('0')">0</button>
+      <button class="key del-key" onclick="deleteLast()">⌫</button>
+    </div>
+
+    <div class="wrong-msg" id="wrongMsg"></div>
+  </div>
+</div>
+
+<!-- ===== MAIN PAGE ===== -->
+<div id="mainPage">
+  <div class="bg-blobs">
+    <div class="blob"></div><div class="blob"></div><div class="blob"></div><div class="blob"></div>
+  </div>
+  <div class="floaties" id="floaties"></div>
+
+  <div class="wrapper">
+    <div class="card">
+      <div class="sticker" style="top:18px;right:22px;animation-delay:-1.5s">🌸</div>
+      <div class="sticker" style="bottom:24px;left:18px;animation-delay:-0.7s;font-size:1.6rem">⭐</div>
+
+      <div class="header-emoji">🎉</div>
+      <div class="title-wrap">
+        <span class="main-title">Happy Anniversary!</span>
+        <span class="subtitle">Selamat ulang tahun hubungan kita yang manis 💞</span>
+      </div>
+
+      <div class="couple-row">
+        <div class="name-box"><span class="name-text">Dudung</span></div>
+        <div class="heart-sep">💗</div>
+        <div class="name-box"><span class="name-text">Nanas</span></div>
+      </div>
+
+      <div class="counter-card">
+        <div class="counter-label">✨ Sudah bersama selama ✨</div>
+        <div class="counter-nums">
+          <div class="num-box"><div class="num-val" id="cnt-y">0</div><div class="num-unit">tahun</div></div>
+          <div class="num-box"><div class="num-val" id="cnt-m">0</div><div class="num-unit">bulan</div></div>
+          <div class="num-box"><div class="num-val" id="cnt-d">0</div><div class="num-unit">hari</div></div>
+          <div class="num-box"><div class="num-val" id="cnt-h">0</div><div class="num-unit">jam</div></div>
+        </div>
+        <div class="start-date-info">📅 Dari 7 Juni 2025</div>
+      </div>
+
+      <div class="message-box">
+        <div class="message-text">
+Happy Anniversary sayang 💌 Terima kasih untuk kekasihku yang sangat aku sayang, terima kasih sudah memberikan rasa bahagia ketika kita sedang bercerita, terima kasih karena sudah bertahan sejauh ini bersamaku, si keras kepala yang susah untuk di atur akhirnya luluh juga, kamu pemenang dari semua yang datang dan kamu juga yang mampu bertahan sejauh ini bersamaku, hubungan yang tadinya aku pikir bakalan sama seperti masa laluku ternyata diluar dugaan, kita berhasil mempertahankan hubungan kita sejauh ini, kita berhasil saling menjaga kepercayaan dan kesetiaan. Sayang aku sangat bersyukur bisa memilikimu sampai saat ini, aku senang kamu menjadi bagian dari hari-hariku, kamu support system terbaikku, aku sungguh mencintaimu.
+<br><br>
+Harapan aku tentang kita adalah saling mempertahankan satu sama lain, saling percaya satu sama lain, berjuang bersama sampai ending nya bahagia, maaf jika sejauh ini aku belum bisa menjadi apa yang kamu mau, maaf jika aku sering kali egois tentang sesuatu, maaf jika aku belum bisa memberi kamu hadiah yang istimewa di anniversary kita, maaf aku belum bisa mengajak kamu ke suatu tempat yang istimewa, jangan pergi ya sayang, jangan pindah ke lain hati, jangan nyerah sama hubungan kita ya, kamu adalah semangatku, kamu tempat pulang paling nyaman setelah perjalanan panjang aku, kamu satu-satunya orang yang aku mau ajak kemanapun, kita wujudin wishlist bareng-bareng ya cintaku, janji tetap sama aku ya. Aku ga mau kehilangan kamu, aku sangat mencintai kamu. Sekali lagi terima kasih sudah bertahan bersamaku, I love you more sayang. 💕
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="memories-title">📸 My Love</div>
+      <div class="photo-grid" id="photoGrid"></div>
+    </div>
+
+    <div class="card">
+      <div class="memories-title">🌟 Momen Tak Terlupakan</div>
+      <div class="memory-grid" id="memoriesList"></div>
+    </div>
+
+    <div class="footer-msg">made with <span style="color:var(--pink)">💗</span> for Celebrating a relationship that has lasted for 1 year.</div>
+  </div>
+</div>
+
+<script>
+  // ===== PIN LOCK =====
+  const CORRECT = '070625';
+  let entered = '';
+
+  function pressKey(k) {
+    if (entered.length >= 6) return;
+    // button press effect
+    event.currentTarget.classList.add('pressed');
+    setTimeout(() => event.currentTarget.classList.remove('pressed'), 150);
+
+    entered += k;
+    updateDots();
+    if (entered.length === 6) setTimeout(checkPin, 300);
+  }
+
+  function deleteLast() {
+    if (!entered.length) return;
+    entered = entered.slice(0, -1);
+    updateDots();
+    document.getElementById('wrongMsg').textContent = '';
+  }
+
+  function updateDots(state) {
+    for (let i = 0; i < 6; i++) {
+      const dot = document.getElementById('d' + i);
+      dot.className = 'pin-dot';
+      if (state === 'error') dot.classList.add('error');
+      else if (state === 'success') dot.classList.add('success');
+      else if (i < entered.length) dot.classList.add('filled');
+    }
+  }
+
+  function checkPin() {
+    if (entered === CORRECT) {
+      updateDots('success');
+      document.getElementById('lockCard').classList.add('unlock-pop');
+      document.querySelector('.lock-heart').textContent = '💖';
+      document.querySelector('.lock-title').textContent = 'Yeay, itu kamu! 🥰';
+      setTimeout(unlockPage, 900);
+    } else {
+      updateDots('error');
+      document.getElementById('pinDots').classList.add('shake');
+      const msgs = [
+        'Eh salah! Coba inget lagi ya sayang~ 🤭',
+        'Hmm bukan itu.. hint: tanggal spesial kita! 💭',
+        'Masa lupa sih? Sayang banget deh 🥺',
+        'Yah salah lagi, ayo dipikir dong! 😅',
+      ];
+      document.getElementById('wrongMsg').textContent = msgs[Math.floor(Math.random() * msgs.length)];
+      setTimeout(() => {
+        document.getElementById('pinDots').classList.remove('shake');
+        entered = '';
+        updateDots();
+      }, 600);
+    }
+  }
+
+  function unlockPage() {
+    document.getElementById('lockScreen').style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    document.getElementById('lockScreen').style.opacity = '0';
+    document.getElementById('lockScreen').style.transform = 'scale(1.05)';
+    document.getElementById('mainPage').style.display = 'block';
+    setTimeout(() => {
+      document.getElementById('lockScreen').style.display = 'none';
+      launchConfetti();
+      initMain();
+    }, 600);
+  }
+
+  // ===== MAIN INIT =====
+  function initMain() {
+    // Floating emojis
+    const emojis = ['🌸','💕','⭐','🌈','🍭','✨','🎀','💖','🍓','🌷','🦋','🎉','💫','🍬'];
+    const fc = document.getElementById('floaties');
+    for (let i = 0; i < 18; i++) {
+      const el = document.createElement('div');
+      el.className = 'floaty';
+      el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      el.style.cssText = `left:${Math.random()*100}vw;animation-duration:${10+Math.random()*15}s;animation-delay:${Math.random()*15}s;font-size:${1+Math.random()*1.5}rem`;
+      fc.appendChild(el);
+    }
+
+    // Counter
+    const START = new Date('2025-06-07T00:00:00');
+    function updateCounter() {
+      const now = new Date();
+      let y = now.getFullYear() - START.getFullYear();
+      let mo = now.getMonth() - START.getMonth();
+      let d = now.getDate() - START.getDate();
+      if (d < 0) { mo--; d += new Date(now.getFullYear(), now.getMonth(), 0).getDate(); }
+      if (mo < 0) { y--; mo += 12; }
+      document.getElementById('cnt-y').textContent = y;
+      document.getElementById('cnt-m').textContent = mo;
+      document.getElementById('cnt-d').textContent = d;
+      document.getElementById('cnt-h').textContent = now.getHours();
+    }
+    updateCounter();
+    setInterval(updateCounter, 60000);
+
+    // Photos
+    const photos = [
+      { src: "./img/1.jpeg", color: '#ffe0ef' },
+      { src: "./img/2.jpeg", color: '#e0f0ff' },
+      { src: "./img/3.jpeg", color: '#e8ffe0' },
+      { src: "./img/4.jpeg", color: '#fff3e0' },
+      { src: "./img/5.jpeg", color: '#f0e0ff' },
+      { src: "./img/6.jpeg", color: '#e0fff5' },
+    ];
+    const grid = document.getElementById('photoGrid');
+    photos.forEach(p => {
+      const slot = document.createElement('div');
+      slot.className = 'photo-slot';
+      if (p.src) {
+        slot.innerHTML = `<img src="${p.src}" alt="foto">`;
+      } else {
+        slot.style.cssText = `background:${p.color};display:flex;align-items:center;justify-content:center;font-size:2.5rem;border:2.5px dashed rgba(255,107,157,0.3);`;
+        slot.textContent = '📷';
+      }
+      grid.appendChild(slot);
+    });
+
+    // Memories
+    // ============================================================
+    // MOMEN TAK TERLUPAKAN
+    // Untuk isi foto/video: ganti nilai "media" dengan URL file.
+    // Contoh foto  : media: 'https://link.com/foto.jpg'
+    // Contoh video : media: 'https://link.com/video.mp4', isVideo: true
+    // Biarkan media: null jika belum ada.
+    // ============================================================
+    const memories = [
+      { text: 'Pertama kali kita ketemu',          color: '#ffe0ef', media: "./img/m1.jpeg",    isVideo: false },
+      { text: 'Date pertama yang bikin deg-degan',  color: '#e0f0ff', media: "./img/m2.jpeg",    isVideo: false },
+      { text: 'Taichan Date',     color: '#e8ffe0', media: "./img/m3.jpeg",    isVideo: false },
+      { text: 'Muter-muter Gajelas  ', color: '#fff3e0', media: "./img/m4.jpeg", isVideo: false },
+      { text: 'Ngobrol sampe larut malam',          color: '#f0e0ff', media: "./img/m5.mp4",    isVideo: true },
+      { text: 'YTTA',     color: '#e0fff5', media: "./img/m6.jpeg",    isVideo: false },
+    ];
+
+    const mList = document.getElementById('memoriesList');
+    memories.forEach((m, idx) => {
+      const card = document.createElement('div');
+      card.className = 'memory-card';
+      card.style.animationDelay = (idx * 0.08) + 's';
+
+      const photoSlot = document.createElement('div');
+      photoSlot.className = 'memory-photo-slot';
+      photoSlot.style.background = m.color;
+
+      if (m.media && m.isVideo) {
+        // VIDEO
+        photoSlot.innerHTML = `
+          <video src="${m.media}" loop playsinline muted></video>
+          <div class="video-play-btn">▶️</div>`;
+        const vid = photoSlot.querySelector('video');
+        const overlay = photoSlot.querySelector('.video-play-btn');
+        overlay.onclick = () => {
+          if (vid.paused) { vid.play(); overlay.style.display = 'none'; }
+          else { vid.pause(); overlay.style.display = 'flex'; }
+        };
+      } else if (m.media) {
+        // FOTO
+        photoSlot.innerHTML = `<img src="${m.media}" alt="foto">`;
+      } else {
+        // KOSONG
+        photoSlot.innerHTML = `<div class="empty-slot"><span>🖼️</span>Belum ada media</div>`;
+      }
+
+      const textEl = document.createElement('div');
+      textEl.className = 'memory-card-text';
+      textEl.textContent = m.text;
+
+      card.appendChild(photoSlot);
+      card.appendChild(textEl);
+      mList.appendChild(card);
+    });
+  }
+
+  // Confetti
+  function launchConfetti() {
+    const colors = ['#ff6b9d','#ffb347','#ffe066','#a8edea','#c9b1ff','#ff8fab'];
+    for (let i = 0; i < 80; i++) {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.left = Math.random() * 100 + 'vw';
+      el.style.background = colors[Math.floor(Math.random() * colors.length)];
+      el.style.setProperty('--drift', (Math.random() * 240 - 120) + 'px');
+      el.style.animationDuration = (1.5 + Math.random() * 2.5) + 's';
+      el.style.animationDelay = (Math.random() * 0.6) + 's';
+      el.style.borderRadius = Math.random() > 0.5 ? '50%' : '3px';
+      el.style.width = el.style.height = (5 + Math.random() * 9) + 'px';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 5000);
+    }
+  }
+</script>
+</body>
+</html>
