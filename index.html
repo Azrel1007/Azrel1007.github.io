@@ -296,6 +296,9 @@
 
 <!-- ===== MAIN PAGE ===== -->
 <div id="mainPage">
+  <audio id="bg-audio" loop>
+  <source src="./audio/bby.mp3" type="audio/mpeg">
+</audio>
   <div class="bg-blobs">
     <div class="blob"></div><div class="blob"></div><div class="blob"></div><div class="blob"></div>
   </div>
@@ -547,6 +550,12 @@ Harapan aku tentang kita adalah saling mempertahankan satu sama lain, saling per
       setTimeout(() => el.remove(), 5000);
     }
   }
+   document.addEventListener('click', function() {
+    const audio = document.getElementById('bg-audio');
+    audio.play().catch(error => {
+      console.log("Autoplay was prevented by the browser:", error);
+    });
+  }, { once: true });
 </script>
 </body>
 </html>
